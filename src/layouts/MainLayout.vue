@@ -1,9 +1,11 @@
 <script setup>
 import signin from 'components/SignIn.vue'
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { userStore } from 'stores/user'
 import db from 'boot/db'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
+import Cookies from 'js-cookie'
 
 const $q = useQuasar()
 const dark = ref($q.dark.isActive)
@@ -15,6 +17,7 @@ const leftDrawerOpen = ref(false)
 const enter = ref(false)
 
 const user = userStore()
+const router = useRouter()
 
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -24,12 +27,28 @@ const exit = () => {
   user.pk = ''
   user.sk = ''
   user.seed = ''
+  Object.keys(Cookies.get()).forEach((n) => {
+    Cookies.remove(n)
+  })
 }
 
 const clear = () => {
   db.delete('settings', 'seed')
-  user.$reset()
+  window.location.reload(true)
+  Object.keys(Cookies.get()).forEach((n) => {
+    Cookies.remove(n)
+  })
+  // user.$reset()
 }
+const noLogin = computed(() => (user.crypt && user.sk.length === 0) ?? false)
+
+watch(noLogin, () => {
+  if (noLogin.value) {
+    router.push('/login')
+  } else {
+    router.push('/')
+  }
+})
 </script>
 
 <template>
@@ -40,12 +59,23 @@ const clear = () => {
 
         <q-toolbar-title>{{ $t('title') }}</q-toolbar-title>
 
-        <q-btn icon="login" v-if="user.crypt && user.sk.length === 0" @click="enter = true" color="secondary"></q-btn>
-        <q-btn icon="logout" class="q-ml-sm" v-if="user.sk.length > 0" @click="exit" color="secondary"></q-btn>
+        <q-btn
+          icon="login"
+          v-if="user.crypt && user.sk.length === 0"
+          @click="enter = true"
+          color="secondary"
+        ></q-btn>
+        <q-btn
+          icon="logout"
+          class="q-ml-sm"
+          v-if="user.sk.length > 0"
+          @click="exit"
+          color="secondary"
+        ></q-btn>
         <!--TODO: mode in db-->
         <q-toggle v-model="dark" color="black" @click="darkToggle" />
         <!--TODO: locale in db-->
-        <q-select class="q-ml-sm" v-model="$i18n.locale" :options=$i18n.availableLocales />
+        <q-select class="q-ml-sm" v-model="$i18n.locale" :options="$i18n.availableLocales" />
       </q-toolbar>
     </q-header>
 
@@ -60,19 +90,32 @@ const clear = () => {
           </q-item-section>
         </q-item>
         <q-separator />
-        <q-item clickable tag="a" href="https://github.com/yatledger">
-          <q-item-section avatar><q-icon name="code" /></q-item-section>
-          <q-item-section>
-            <q-item-label>{{ $t('menu.code') }}</q-item-label>
-            <q-item-label caption>{{ $t('menu.codeDesc') }}</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-separator />
         <q-item v-if="!user.crypt" clickable tag="a" to="/sign">
-          <q-item-section avatar><q-icon name="stream" /></q-item-section>
+          <q-item-section avatar><q-icon name="perm_identity" /></q-item-section>
           <q-item-section>
             <q-item-label>{{ $t('menu.sign') }}</q-item-label>
             <q-item-label caption>{{ $t('menu.signDesc') }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item v-if="user.crypt" clickable tag="a" to="/send">
+          <q-item-section avatar><q-icon name="send" /></q-item-section>
+          <q-item-section>
+            <q-item-label>{{ $t('menu.send') }}</q-item-label>
+            <q-item-label caption>{{ $t('menu.sendDesc') }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item v-if="user.crypt" clickable tag="a" to="/msg">
+          <q-item-section avatar><q-icon name="edit" /></q-item-section>
+          <q-item-section>
+            <q-item-label>{{ $t('menu.msg') }}</q-item-label>
+            <q-item-label caption>{{ $t('menu.msgDesc') }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item v-if="user.crypt" clickable tag="a" to="/read">
+          <q-item-section avatar><q-icon name="chat" /></q-item-section>
+          <q-item-section>
+            <q-item-label>{{ $t('menu.recive') }}</q-item-label>
+            <q-item-label caption>{{ $t('menu.reciveDesc') }}</q-item-label>
           </q-item-section>
         </q-item>
         <q-item v-if="user.crypt" @click="clear" clickable tag="span">
@@ -89,27 +132,6 @@ const clear = () => {
             <q-item-label caption>{{ $t('menu.helpDesc') }}</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item to="/tx" clickable tag="span">
-          <q-item-section avatar><q-icon name="wallet" /></q-item-section>
-          <q-item-section>
-            <q-item-label>{{ $t('menu.transaction') }}</q-item-label>
-            <q-item-label caption>{{ $t('menu.transactionDesc') }}</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item to="/contacts" clickable tag="span">
-          <q-item-section avatar><q-icon name="people_alt" /></q-item-section>
-          <q-item-section>
-            <q-item-label>{{ $t('menu.contacts') }}</q-item-label>
-            <q-item-label caption>{{ $t('menu.contactsDesc') }}</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item to="/topUsers" clickable tag="span">
-          <q-item-section avatar><q-icon name="emoji_events" /></q-item-section>
-          <q-item-section>
-            <q-item-label>{{ $t('menu.topUsers') }}</q-item-label>
-            <q-item-label caption>{{ $t('menu.topUsersDesc') }}</q-item-label>
-          </q-item-section>
-        </q-item>
       </q-list>
     </q-drawer>
     <q-dialog v-model="enter" persistent>
@@ -120,11 +142,11 @@ const clear = () => {
     </q-page-container>
     <q-footer elevated v-if="user.sk.length > 0">
       <q-toolbar class="flex flex-center q-pa-sm">
-        <!--<q-btn round size="lg" icon="account_box" to="/friends"></q-btn>
-        <q-btn round size="lg" icon="sync_alt" to="/tx"></q-btn>-->
+        <!--q-btn round size="lg" icon="account_box" to="/friends"></q-btn-->
+        <q-btn round size="lg" icon="sync_alt" to="/tx"></q-btn>
         <q-btn round size="lg" icon="qr_code_scanner" to="/qr"></q-btn>
-        <!--<q-btn round size="lg" icon="language" to="/global"></q-btn>
-        <q-btn round size="lg" icon="manage_accounts" to="/profile"></q-btn>-->
+        <q-btn round size="lg" icon="language" to="/global"></q-btn>
+        <q-btn round size="lg" icon="manage_accounts" to="/profile"></q-btn>
       </q-toolbar>
     </q-footer>
   </q-layout>

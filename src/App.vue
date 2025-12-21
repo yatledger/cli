@@ -1,15 +1,10 @@
-<script setup>
-// TODO: dev gql
-// TODO: language-packs
-// https://quasar.dev/options/quasar-language-packs
-// TODO: remember
-// TODO: tx
-// https://testing.quasar.dev/
-</script>
-
 <template>
   <router-view />
 </template>
+
+<script setup>
+//
+</script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
@@ -18,7 +13,7 @@ h2 {
   font-family: 'Roboto Slab', serif;
   font-size: 20px;
   font-weight: normal;
-  margin-bottom: 1vh
+  margin-bottom: 1vh;
 }
 
 p {
@@ -44,7 +39,7 @@ ul {
 }
 
 img {
-  max-width: 100%
+  max-width: 100%;
 }
 
 .raw_txt {

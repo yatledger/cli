@@ -1,40 +1,40 @@
-# Yat client
+# Quasar App (auth)
 
-## Install Quasar
-```bash
-npm i -g @quasar/cli
-```
+A Quasar Project
 
 ## Install the dependencies
 ```bash
+yarn
+# or
 npm install
 ```
 
-## Start the app in development mode
+### Start the app in development mode (hot-code reloading, error reporting, etc.)
 ```bash
-quasar dev -m pwa
+quasar dev
 ```
 
-## Build the app for production
-```bash
-quasar build -m pwa
-```
----
-### Be SSL
-Read [mkcert: valid HTTPS certificates for localhost](https://words.filippo.io/mkcert-valid-https-certificates-for-localhost/).
 
-Use the pre-built binaries:
+### Lint the files
 ```bash
-curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"
-chmod +x mkcert-v*-linux-amd64
-sudo cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert
+yarn lint
+# or
+npm run lint
 ```
 
-### Useful links:
-- [Quasar Framework](https://quasar.dev/)
-- [Vue.js Guide](https://vuejs.org/guide/)
-- [Pinia: Store that you will enjoy using](https://pinia.vuejs.org/)
-- [Villus: minimal GraphQL client](https://pinia.vuejs.org/)
-- [Vue Test Utils](https://vuejs.org/)
-- [TweetNaCl.js - JavaScript crypto library](https://tweetnacl.js.org/)
-- [wemake-vue-template](https://github.com/wemake-services/wemake-vue-template)
+
+### Format the files
+```bash
+yarn format
+# or
+npm run format
+```
+
+
+### Build the app for production
+```bash
+quasar build
+```
+
+### Customize the configuration
+See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).

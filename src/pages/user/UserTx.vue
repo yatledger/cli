@@ -1,138 +1,71 @@
-<template>
-  <section>
-    <UserHistoryTx :records="records" :columns="columns"/>
-  </section>
-</template>
-
 <script setup>
 import { ref } from 'vue'
-import UserHistoryTx from 'components/UserTxHistory.vue'
+import { useQuery } from '@vue/apollo-composable'
+import { gql } from '@apollo/client/core'
+import { userStore } from 'stores/user'
+import { decryptMessage } from 'boot/crypt'
 
-defineOptions({
-  name: 'UserTx'
-})
-const columns = ref([
-  {
-    name: 'date',
-    required: true,
-    label: 'Дата',
-    align: 'left',
-    field: 'date',
-    format: val => `${val}`,
-    sortable: true
-  },
-  {
-    name: 'walletFrom',
-    align: 'center',
-    label: 'От кого',
-    field: 'walletFrom',
-    sortable: true
-  },
-  {
-    name: 'walletTo',
-    align: 'center',
-    label: 'Куда',
-    field: 'walletTo',
-    sortable: true
-  },
-  {
-    name: 'amount',
-    label: 'Сумма',
-    field: 'amount',
-    sortable: true
-  },
-  {
-    name: 'type',
-    label: 'Тип',
-    field: 'type',
-    sortable: true
-  }
-])
+const user = userStore()
+const showMsg = ref(false)
+const msg = ref('')
 
-const records = ref([
+const { result } = useQuery(
+  gql`
+    query MyQuery($addr: String) {
+      tx(addr: $addr) {
+        amount
+        credit
+        debit
+        msg
+        time
+      }
+    }
+  `,
   {
-    date: '21.01.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 999.01,
-    type: 'Deposit'
+    addr: user.pk
   },
   {
-    date: '21.02.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 21140.25,
-    type: 'Withdrawal'
-  },
-  {
-    date: '21.01.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 9919.01,
-    type: 'Deposit'
-  },
-  {
-    date: '21.02.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 140.25,
-    type: 'Withdrawal'
-  },
-  {
-    date: '21.01.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 467.01,
-    type: 'Deposit'
-  },
-  {
-    date: '21.02.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 9812,
-    type: 'Withdrawal'
-  },
-  {
-    date: '21.01.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 999.01,
-    type: 'Deposit'
-  },
-  {
-    date: '21.02.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 21140.25,
-    type: 'Withdrawal'
-  },
-  {
-    date: '21.01.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 999.01,
-    type: 'Deposit'
-  },
-  {
-    date: '21.02.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 21140.25,
-    type: 'Withdrawal'
-  },
-  {
-    date: '21.01.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 999.01,
-    type: 'Deposit'
-  },
-  {
-    date: '21.02.2024',
-    walletFrom: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    walletTo: 'BvF9EUZntQZBsQmKCadDc8XmarSdLGdRS3LGJuUUsSqv',
-    amount: 21140.25,
-    type: 'Withdrawal'
+    pollInterval: 10000,
+    fetchPolicy: 'cache-and-network'
   }
-])
+)
+
+const decrypt = async (m, a) => {
+  showMsg.value = true
+  msg.value = await decryptMessage(m.slice(4), a, user.sk)
+}
 </script>
+
+<template>
+  <q-page v-if="result">
+    <div v-for="tx in result.tx" :key="tx.time">
+      <p>
+        Amount: {{ tx.amount }}<br />
+        Credit: {{ tx.credit }}<br />
+        Debit: {{ tx.debit }}<br />
+        Msg: {{ tx.msg }}
+        <q-btn
+          v-if="tx.debit === user.pk && tx.msg.startsWith('!SEC')"
+          outline
+          round
+          color="primary"
+          size="xs"
+          @click="decrypt(tx.msg, tx.credit)"
+          icon="key"
+        />
+        <br />
+        Time: {{ tx.time }}
+      </p>
+    </div>
+  </q-page>
+  <q-dialog v-model="showMsg" persistent>
+    <q-card>
+      <q-card-section>
+        {{ msg }}
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat label="OK" color="primary" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+</template>

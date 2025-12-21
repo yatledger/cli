@@ -1,12 +1,16 @@
 <template>
   <figure class="qrcode">
-    <vue-qrcode :value="url" :options="{
-      width: 250, color: {
-        dark: '#3e007a',
-        light: '#ffffff',
-      },
-    }"></vue-qrcode>
-    <img class="qrcode__image" src="icons/icon-qr.png" />
+    <vue-qrcode
+      :value="url"
+      :options="{
+        width: 250,
+        color: {
+          dark: '#3e007a',
+          light: '#ffffff'
+        }
+      }"
+    ></vue-qrcode>
+    <img class="qrcode__image" src="/icons/icon-qr.png" />
   </figure>
 </template>
 
@@ -16,7 +20,7 @@ import { userStore } from 'stores/user'
 
 const user = userStore()
 console.log(user.pk)
-const url = user.pk ? user.pk : 'no data'
+const url = user.pk
 </script>
 
 <style scoped>

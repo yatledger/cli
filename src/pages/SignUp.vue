@@ -1,24 +1,19 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
 import { userStore } from 'stores/user'
-import { sign, secretbox } from 'tweetnacl'
-import russian from 'boot/wordlists/russian.json'
-import { wordlist as english } from '@scure/bip39/wordlists/english'
-import { wordlist as chinese } from '@scure/bip39/wordlists/simplified-chinese'
 import db from 'boot/db'
-import { generateMnemonic } from '@scure/bip39'
-import { pbkdf2 } from '@noble/hashes/pbkdf2'
-import { sha512 } from '@noble/hashes/sha512'
 import { base58 } from '@scure/base'
 import { passwordStrength } from 'check-password-strength'
 import { useI18n } from 'vue-i18n'
 import { Notify, copyToClipboard } from 'quasar'
+import { pbkdf2 } from '@noble/hashes/pbkdf2'
+import { sha512 } from '@noble/hashes/sha512'
+import { secretbox } from 'tweetnacl'
+import { generateMnemonic, generateKeysFromSeed } from 'boot/crypt'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 console.log(db)
 const user = userStore()
-const router = useRouter()
 console.log(user)
 
 const pwdOptions = [
@@ -58,31 +53,16 @@ const pwd = ref('')
 const pwdRef = ref(null)
 const pk = ref('')
 const isPwd = ref(true)
-const isCopedSeed = ref(false)
-const isCopedPwd = ref(false)
 const mn = ref('')
-let seed = ''
 let keys = ''
 
-const gen = (l) => {
-  let wordlist
-  // const wordlist = l === 'ru' ? russian : english
-  switch (l) {
-    case 'ru':
-      wordlist = russian
-      break
-    case 'cn':
-      wordlist = chinese
-      break
-    default:
-      wordlist = english
-  }
-  console.log(wordlist)
-  mn.value = generateMnemonic(wordlist).normalize('NFKD')
-  seed = pbkdf2(sha512, mn.value, '', { c: 2048, dkLen: 32 })
-  keys = sign.keyPair.fromSeed(seed)
+;(async () => {
+  mn.value = await generateMnemonic()
+  console.log('Mnemonic:', mn.value)
+  keys = await generateKeysFromSeed(mn.value)
+  // keys.publicKey.toString('hex')
   pk.value = base58.encode(keys.publicKey)
-}
+})()
 
 const signup = async () => {
   pwdRef.value.validate()
@@ -98,17 +78,14 @@ const signup = async () => {
   console.log(pk.value)
   user.crypt = seed
   user.seed = mn.value
-  router.push('/')
+  window.location.reload(true)
 }
 
-gen(locale.value)
-watch(ref(locale), () => gen(locale.value))
+const hint = computed(() => (pwd.value ? passwordStrength(pwd.value, pwdOptions).value : false))
 
-const hint = computed(() => pwd.value ? passwordStrength(pwd.value, pwdOptions).value : false)
+const disabled = computed(() => pwd.value.length < 8)
 
-const disabled = computed(() => pwd.value.length < 7)
-
-const copySign = (txt) => {
+const copy = (txt) => {
   copyToClipboard(txt)
     .then(() => {
       Notify.create(t('sign.copy'))
@@ -117,46 +94,59 @@ const copySign = (txt) => {
       // fail
     })
 }
-const copyPwd = (txt) => {
-  copyToClipboard(txt)
-    .then(() => {
-      Notify.create(t('sign.pwd'))
-    })
-    .catch(() => {
-      // fail
-    })
-}
-
 </script>
 
 <template>
   <q-page class="flex flex-center">
     <div class="collumn q-pa-sm text-center" v-if="!user.seed">
-      <p class="text-justify text-body1">{{ $t("sign.t1") }}</p>
+      <p class="text-justify text-body1">{{ $t('sign.t1') }}</p>
       <!--TODO: copy-->
-      <p><q-card class="text-h4" @click="copySign(mn)"><q-card-section>{{ mn }}
-            <q-icon :name="!isCopedSeed ? 'content_copy' : 'done'" class="cursor-pointer" @click="isCopedSeed = !isCopedSeed" />
-          </q-card-section></q-card></p>
-      <p class="text-justify text-body1">{{ $t("sign.t2") }}:</p>
       <p>
-        <q-card class="inline-block q-pa-xs text-h4" @click="copyPwd(pk)">{{ pk }}
-          <q-icon :name="!isCopedPwd ? 'content_copy' : 'done'" class="cursor-pointer" @click="isCopedPwd = !isCopedPwd" />
-        </q-card>
+        <q-card class="text-h4" @click="copy(mn)"
+          ><q-card-section>{{ mn }}</q-card-section></q-card
+        >
       </p>
-      <p class="text-left text-body1">{{ $t("sign.t3") }}</p>
-      <q-input ref="pwdRef" v-model="pwd" filled counter :type="isPwd ? 'password' : 'text'"
-        :placeholder="$t('characters')" :hint="hint ? hint : $t('sign.protect')" :label="$t('password')" lazy-rules
+      <p class="text-justify text-body1">{{ $t('sign.t2') }}:</p>
+      <p>
+        <q-card class="inline-block q-pa-xs text-caption">{{ pk }}</q-card>
+      </p>
+      <p class="text-left text-body1">{{ $t('sign.t3') }}</p>
+      <q-input
+        ref="pwdRef"
+        v-model="pwd"
+        filled
+        counter
+        :type="isPwd ? 'password' : 'text'"
+        :placeholder="$t('characters')"
+        :hint="hint ? hint : $t('sign.protect')"
+        :label="$t('password')"
+        lazy-rules
         :rules="[
-          val => !!val || $t('sign.pwdMust'),
-          val => val.length > 6 || $t('sign.pwdMore'),
-        ]">
+          (val) => !!val || $t('sign.pwdMust'),
+          (val) => val.length > 6 || $t('sign.pwdMore')
+        ]"
+      >
         <template v-slot:append>
-          <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer" @click="isPwd = !isPwd" />
+          <q-icon
+            :name="isPwd ? 'visibility_off' : 'visibility'"
+            class="cursor-pointer"
+            @click="isPwd = !isPwd"
+          />
         </template>
       </q-input>
-      <div class="q-mt-md"><q-btn push :disable="disabled" color="primary" size="xl" @click="signup"
-          :label="$t('next')" /></div>
-      <p class="text-subtitle1 q-mt-sm"><router-link to="remember">{{ $t("sign.know") }}</router-link></p>
+      <div class="q-mt-md">
+        <q-btn
+          push
+          :disable="disabled"
+          color="primary"
+          size="xl"
+          @click="signup"
+          :label="$t('next')"
+        />
+      </div>
+      <p class="text-subtitle1 q-mt-sm">
+        <router-link to="/restore">{{ $t('sign.know') }}</router-link>
+      </p>
     </div>
   </q-page>
 </template>

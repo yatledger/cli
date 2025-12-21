@@ -21,8 +21,8 @@ export default boot(
     // optionsB.link = createHttpLink({ uri: 'http://clientB.example.com' })
     // const clientB = new ApolloClient(optionsB)
 
-    const apolloClients: Record<string, ApolloClient<unknown>> = {
-      default: apolloClient
+    const apolloClients = {
+      default: apolloClient,
       // clientA,
       // clientB,
     }

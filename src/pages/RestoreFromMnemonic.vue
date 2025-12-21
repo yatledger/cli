@@ -1,3 +1,0 @@
-<template>
-  restore!
-</template>

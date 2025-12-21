@@ -1,23 +1,17 @@
-import type { ApolloClientOptions } from '@apollo/client/core'
-import { createHttpLink, InMemoryCache } from '@apollo/client/core'
-import type { BootFileParams } from '@quasar/app-vite'
+import { createHttpLink } from '@apollo/client/link/http/index.js'
+import { InMemoryCache } from '@apollo/client/cache/index.js'
 
-// https://github.com/quasarframework/app-extension-apollo
-
-export /* async */ function getClientOptions (
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-  /* {app, router, ...} */ options?: Partial<BootFileParams<any>>
+export /* async */ function getClientOptions(
+  // eslint-disable-next-line no-unused-vars
+  /* {app, router, ...} */ options
 ) {
   const httpLink = createHttpLink({
-    uri:
-      process.env.GRAPHQL_URI ||
-      // Change to your graphql endpoint.
-      'http://127.0.0.1:9696/graphql'
+    uri: process.env.GQL_API
   })
 
-  return <ApolloClientOptions<unknown>>Object.assign(
+  return Object.assign(
     // General options.
-    <ApolloClientOptions<unknown>>{
+    {
       link: httpLink,
 
       cache: new InMemoryCache()
