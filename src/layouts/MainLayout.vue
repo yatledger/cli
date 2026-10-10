@@ -5,7 +5,6 @@ import { userStore } from 'stores/user'
 import db from 'boot/db'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import Cookies from 'js-cookie'
 
 const $q = useQuasar()
 const dark = ref($q.dark.isActive)
@@ -24,23 +23,16 @@ const toggleLeftDrawer = () => {
 }
 
 const exit = () => {
-  user.pk = ''
-  user.sk = ''
-  user.seed = ''
-  Object.keys(Cookies.get()).forEach((n) => {
-    Cookies.remove(n)
-  })
+  user.reset()
 }
 
-const clear = () => {
-  db.delete('settings', 'seed')
+const clear = async () => {
+  await db.delete('settings', 'seed')
+  user.reset()
+  user.crypt = false
   window.location.reload(true)
-  Object.keys(Cookies.get()).forEach((n) => {
-    Cookies.remove(n)
-  })
-  // user.$reset()
 }
-const noLogin = computed(() => (user.crypt && user.sk.length === 0) ?? false)
+const noLogin = computed(() => user.crypt && user.sk.length === 0)
 
 watch(noLogin, () => {
   if (noLogin.value) {

@@ -1,20 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { userStore } from 'stores/user'
-import db from 'boot/db'
 import { base58 } from '@scure/base'
 import { passwordStrength } from 'check-password-strength'
 import { useI18n } from 'vue-i18n'
 import { Notify, copyToClipboard } from 'quasar'
-import { pbkdf2 } from '@noble/hashes/pbkdf2'
-import { sha512 } from '@noble/hashes/sha512'
-import { secretbox } from 'tweetnacl'
 import { generateMnemonic, generateKeysFromSeed } from 'boot/crypt'
+import { saveSeed } from 'src/services/wallet'
 
 const { t } = useI18n()
-console.log(db)
 const user = userStore()
-console.log(user)
 
 const pwdOptions = [
   {
@@ -54,13 +49,11 @@ const pwdRef = ref(null)
 const pk = ref('')
 const isPwd = ref(true)
 const mn = ref('')
-let keys = ''
+let keys = null
 
 ;(async () => {
   mn.value = await generateMnemonic()
-  console.log('Mnemonic:', mn.value)
   keys = await generateKeysFromSeed(mn.value)
-  // keys.publicKey.toString('hex')
   pk.value = base58.encode(keys.publicKey)
 })()
 
@@ -69,16 +62,16 @@ const signup = async () => {
   if (pwdRef.value.hasError) {
     return
   }
-  const encoder = new TextEncoder()
-  const k = pbkdf2(sha512, pwd.value, '', { c: 2048, dkLen: 32 })
-  const seed = base58.encode(secretbox(encoder.encode(mn.value), new Uint8Array(24), k))
-  db.set('settings', 'seed', seed)
-  user.sk = keys.secretKey
-  user.pk = pk.value
-  console.log(pk.value)
-  user.crypt = seed
-  user.seed = mn.value
-  window.location.reload(true)
+  try {
+    await saveSeed(mn.value, pwd.value)
+    user.sk = keys.privateKey
+    user.pk = pk.value
+    user.seed = mn.value
+    user.crypt = true
+    window.location.reload(true)
+  } catch {
+    Notify.create({ type: 'negative', message: t('failed') })
+  }
 }
 
 const hint = computed(() => (pwd.value ? passwordStrength(pwd.value, pwdOptions).value : false))
@@ -100,7 +93,6 @@ const copy = (txt) => {
   <q-page class="flex flex-center">
     <div class="collumn q-pa-sm text-center" v-if="!user.seed">
       <p class="text-justify text-body1">{{ $t('sign.t1') }}</p>
-      <!--TODO: copy-->
       <p>
         <q-card class="text-h4" @click="copy(mn)"
           ><q-card-section>{{ mn }}</q-card-section></q-card

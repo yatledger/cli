@@ -30,11 +30,13 @@ export default {
     pwd4: 'Very strong password',
     pwdMust: "It's better to enter the password",
     pwdMore: "It's better to enter more than 6 characters",
-    know: 'I remember my phrase!'
+    know: 'I remember my phrase!',
+    badMnemonic: 'Invalid mnemonic phrase'
   },
   enter: {
     remember: 'Remember your password',
-    hint: 'Password for mnemonic phrase'
+    hint: 'Password for mnemonic phrase',
+    wrong: 'Wrong password'
   },
   failed: 'Failed',
   success: 'Success',

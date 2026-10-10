@@ -3,9 +3,23 @@ node_modules
 .thumbs.db
 node_modules
 
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local TLS certificates / secrets
+/keys
+
 # Quasar core related directories
 .quasar
 /dist
+
+# Playwright
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
 
 # Cordova related directories and files
 /src-cordova/node_modules

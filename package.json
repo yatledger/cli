@@ -10,6 +10,7 @@
     "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{js,cjs,mjs,vue}\"",
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0",
+    "test:e2e": "quasar build && playwright test",
     "dev": "quasar dev",
     "build": "quasar build",
     "postinstall": "quasar prepare"
@@ -29,7 +30,7 @@
     "idb": "^8.0.2",
     "js-cookie": "^3.0.5",
     "ky": "^1.7.5",
-    "libsodium-wrappers": "^0.7.15",
+    "libsodium-wrappers": "0.7.15",
     "pinia": "^3.0.1",
     "quasar": "^2.16.0",
     "register-service-worker": "^1.7.2",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@eslint/js": "^9.14.0",
     "@intlify/unplugin-vue-i18n": "^2.0.0",
+    "@playwright/test": "^1.64.0",
     "@quasar/app-vite": "^2.1.0",
     "@quasar/quasar-app-extension-apollo": "^2.2.4",
     "@vue/eslint-config-prettier": "^10.1.0",

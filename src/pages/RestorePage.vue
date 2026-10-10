@@ -1,14 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { userStore } from 'stores/user'
-import { secretbox } from 'tweetnacl'
-import db from 'boot/db'
-import { pbkdf2 } from '@noble/hashes/pbkdf2'
-import { sha512 } from '@noble/hashes/sha512'
-import { base58 } from '@scure/base'
 import { passwordStrength } from 'check-password-strength'
 import { useI18n } from 'vue-i18n'
-import { generateKeysFromSeed } from 'boot/crypt'
+import { Notify } from 'quasar'
+import { saveSeed } from 'src/services/wallet'
 
 const { t } = useI18n()
 const user = userStore()
@@ -52,20 +48,18 @@ const isPwd = ref(true)
 const mn = ref('')
 
 const signup = async () => {
-  const keys = await generateKeysFromSeed(mn.value)
   pwdRef.value.validate()
   if (pwdRef.value.hasError) {
     return
   }
-  const encoder = new TextEncoder()
-  const k = pbkdf2(sha512, pwd.value, '', { c: 2048, dkLen: 32 })
-  const seed = base58.encode(secretbox(encoder.encode(mn.value), new Uint8Array(24), k))
-  db.set('settings', 'seed', seed)
-  user.sk = keys.secretKey
-  user.pk = base58.encode(keys.publicKey)
-  user.crypt = seed
-  user.seed = mn.value
-  window.location.reload(true)
+  try {
+    await user.setMnemonic(mn.value)
+    await saveSeed(mn.value, pwd.value)
+    user.crypt = true
+    window.location.reload(true)
+  } catch {
+    Notify.create({ type: 'negative', message: t('sign.badMnemonic') })
+  }
 }
 
 const hint = computed(() => (pwd.value ? passwordStrength(pwd.value, pwdOptions).value : false))
