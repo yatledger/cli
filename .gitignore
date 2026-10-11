@@ -43,3 +43,5 @@ yarn-error.log*
 *.njsproj
 *.sln
 
+.semantic-search
+
